@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <div id="before_game_menu">
+        <div class="dark_div">
+            <strong>Players</strong>
+            <div id="player_div"></div>
+        </div>
+
+        <div class="dark_div">
+            <strong>Number of spies</strong>
+            <strong><div id="spy_div"></div></strong>
+        </div>
+
+        <div class="dark_div">
+            <strong>Round time (coming soon)</strong>
+        </div>
+
+        <div class="dark_div">
+            <div id="change_sets_div">
+                <strong>Sets</strong>
+            </div>
+        </div>
+
+        <div id="play_button">
+            <strong>PLAY</strong>
+        </div>
+
+
+        <div id="player_modal_overlay" class="hidden">
+            <div id="player_modal_box">
+                <h2>Add player</h2>
+                <input id="player_modal_input" placeholder="Player name">
+                <button id="add_player_button">ADD</button>
+            </div>
+        </div>
+        <div id="spy_modal_overlay" class="hidden">
+            <div id="spy_modal_box">
+                <h2>Number of spies</h2>
+                <div id="spy_selector"></div>
+                <button id="ok_spy_button">OK</button>
+            </div>
+        </div>
+    </div>
+    <div id="sets_modal_overlay" class="hidden">
+        <div id="zestawy_box_div">
+            <h2>Zestawy<span id="add_zestaw_button">ADD</span><span id="delete_zestaw_button">DELETE</span>	</h2>  
+            <div id="sets_modal_box">
+                
+            </div>
+        </div>
+    </div>
+    <div id="add_zestaw_overlay" class="hidden">
+        <div id="add_zestaw_screen">
+            <input id="custom_zestaw_name" placeholder="new zestaw name"> 
+            <input id="custom_zestaw_words" placeholder="słowa oddzielone ','">
+            <button id="custom_zestaw_confirm">Confirm</button>
+        </div>
+    </div>
+    <div id="player_warning" class="hidden">
+        <h1>YOU NEED ATLEAST 3 PLAYERS TO PLAY</h1>
+        <div id="player_warning_button">OK</div>
+    </div>
+
+    <div id="cards_menu" class="hidden">
+        <div id="player_card"></div>
+        <div id="cards"></div>
+    </div>
+
+    <div id="game_screen" class="hidden">
+        <div id="game_screen_players"></div>
+        <div id="game_screen_actions">Menu under construction</div>
+        <div id="new_game">New Game</div>
+    </div>
+
+    <script src="javascript.js"></script>
+</body>
+</html>
+
+
