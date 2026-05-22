@@ -31,38 +31,36 @@
         <div id="play_button">
             <strong>PLAY</strong>
         </div>
-
-
-        <div id="player_modal_overlay" class="hidden">
-            <div id="player_modal_box">
-                <h2>Add player</h2>
-                <input id="player_modal_input" placeholder="Player name">
-                <button id="add_player_button">ADD</button>
-            </div>
-        </div>
-        <div id="spy_modal_overlay" class="hidden">
-            <div id="spy_modal_box">
-                <h2>Number of spies</h2>
-                <div id="spy_selector"></div>
-                <button id="ok_spy_button">OK</button>
-            </div>
-        </div>
     </div>
-    <div id="sets_modal_overlay" class="hidden">
-        <div id="zestawy_box_div">
+    <div id="black_overlay" class="hidden">
+
+        <div id="player_box" class="hidden">
+            <h2>Add player</h2>
+            <input id="player_input" placeholder="Player name">
+            <button id="add_player_button">ADD</button>
+        </div>
+        
+        <div id="spy_box" class="hidden">
+            <h2>Number of spies</h2>
+            <div id="spy_selector"></div>
+            <button id="ok_spy_button">OK</button>
+        </div>
+
+        <div id="zestawy_box_div" class="hidden">
             <h2>Zestawy<span id="add_zestaw_button">ADD</span><span id="delete_zestaw_button">DELETE</span>	</h2>  
-            <div id="sets_modal_box">
+            <div id="sets_box">
                 
             </div>
         </div>
-    </div>
-    <div id="add_zestaw_overlay" class="hidden">
-        <div id="add_zestaw_screen">
+
+        <div id="add_zestaw_screen" class="hidden">
             <input id="custom_zestaw_name" placeholder="new zestaw name"> 
             <input id="custom_zestaw_words" placeholder="słowa oddzielone ','">
             <button id="custom_zestaw_confirm">Confirm</button>
         </div>
+
     </div>
+
     <div id="player_warning" class="hidden">
         <h1>YOU NEED ATLEAST 3 PLAYERS TO PLAY</h1>
         <div id="player_warning_button">OK</div>

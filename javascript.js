@@ -1,30 +1,14 @@
-
-
 let players = [];
-let spy_players = []
+let spy_players = [];
 let word = "";
 let num_of_spies = 1;
 let random_spies = false;
-let zestawy =[];
+let zestawy = [];
 let selected_zestaw = 0;
+current_card = 0;
 
 start();
-Zestawy();
-drawZestawy();
-drawPlayers();
-drawSpies();
-getPlayerButton();
-changeNumSpies();
-closePlayers();
-changeZestaw();
-closeZestaw();
-deleteZestaw();
-customZestawy();
-addCustomZestaw();
-closeSpy();
 startGame();
-NextGameButton();
-
 
 
 function start(){
@@ -34,229 +18,215 @@ function start(){
     game_menu.classList.remove("hidden");
     cards_menu.classList.add("hidden");
     game_screen.classList.add("hidden");
-}
 
-function getPlayers(){
-    const overlay = document.getElementById("modal_overlay");
-    const modalInput = document.getElementById("modal_input");
-
-    overlay.classList.remove("hidden");
-
-    modalInput.value = "";
-
-    modalInput.focus();
-}
-
-function getPlayerButton(){
-    const add_player_button = document.getElementById("add_player_button");
-    add_player_button.addEventListener("click", () => {
-        const overlay = document.getElementById("player_modal_overlay");
-        const modal_input = document.getElementById("player_modal_input");
-
-        const username = modal_input.value.trim();
-        if (username === "") return;
-
-        players.push(username);
-        drawPlayers();
-
-        overlay.classList.add("hidden");
-    });
+    drawPlayers();
+    handleSpies();
+    getZestawy();
+    changeZestaw();
+    customZestawy();
 }
 
 
-function drawPlayers() {
-    const container = document.getElementById("player_div");
-    container.innerHTML = "";
+function drawPlayers(){ //draws players and their overlay
+    const overlay = document.getElementById("black_overlay");
+    const player_input = document.getElementById("player_input");
+    const player_container = document.getElementById("player_div");
+    const player_box = document.getElementById("player_box")
+    player_container.innerHTML = "";
 
-    players.forEach(player => {
-        const box = document.createElement("div");
+    //rysowanie graczy
+    const player_size = players.length;
+    for (let i = 0; i < player_size; i++){
+        let box = document.createElement("div");
         box.classList.add("player_box");
-        box.textContent = player;
+        box.textContent = players[i];
+        
+        player_container.appendChild(box);
+    }
 
-        container.appendChild(box);
-    });
-    
-    const addBox = document.createElement("div");
-    addBox.className = "player_box";
-    addBox.textContent = "+";
-
-    addBox.addEventListener("click", () => {
-
-        const overlay = document.getElementById("player_modal_overlay");
-        const modal_input = document.getElementById("player_modal_input");
+    //przycisk "+" główne menu
+    const add_box = document.createElement("div");
+    add_box.className = "player_box";
+    add_box.textContent = "+";
+    add_box.onclick = () =>{
 
         overlay.classList.remove("hidden");
+        player_box.classList.remove("hidden");
+        player_input.value = "";
+        player_input.focus();
 
-        modal_input.value = "";
+        //mechanika add button w overlay gracze
+        const add_player_button = document.getElementById("add_player_button"); 
+        add_player_button.onclick = () =>{
+            const username = player_input.value.trim();
+            if (username === "") return;
+            players.push(username);
+            drawPlayers();
+            overlay.classList.add("hidden");
+            player_box.classList.add("hidden");
+        }
 
-        modal_input.focus();
-    });
-    container.appendChild(addBox);
+        //klikanie poza boxa wyłącza overlay
+        overlay.onclick = () => {
+            overlay.classList.add("hidden");
+            player_box.classList.add("hidden");
+        }
+        player_box.onclick = (e) =>{
+            e.stopPropagation();
+        }
+    }
+    player_container.appendChild(add_box);
 }
 
-function closePlayers(){
-    const player_overlay = document.getElementById("player_modal_overlay");
-    const player_box = document.getElementById("player_modal_box");
-
-    player_overlay.addEventListener("click", () => {
-        player_overlay.classList.add("hidden");
-    });
-
-    player_box.addEventListener("click", (e) => {
-        e.stopPropagation();
-    });
-}
 function warningPlayer(){
     const warning = document.getElementById("player_warning");
-    warning.classList.remove("hidden")
     const warning_button = document.getElementById("player_warning_button");
-    warning_button.addEventListener("click", () => {
+    warning.classList.remove("hidden");
+    warning_button.onclick = () => {
         warning.classList.add("hidden");
-    });
+    };
 }
-
-
 
 function drawSpies(){
     const spy_div = document.getElementById("spy_div");
-    if(random_spies === false){
+    if ( random_spies === false ) {
         spy_div.textContent = num_of_spies;
     } else {
         spy_div.textContent = "🎲";
     }
 }
-function changeNumSpies(){
-    const spy_div = document.getElementById("spy_div");
-    spy_div.addEventListener("click", () => {
-        const overlay = document.getElementById("spy_modal_overlay");
 
-        overlay.classList.remove("hidden");
-        
-        createSpySelector();
-    });
-    //spy_div.textContent = num_of_spies;
+function handleSpies(){
+    const spy_div = document.getElementById("spy_div");
+
+    spy_div.onclick = () => openSpyMenu();
+
+    drawSpies();
 }
 
-function createSpySelector() {
-    const selector = document.getElementById("spy_selector");
-    selector.innerHTML = "";
-    for (let i = 1; i <= 9; i++) {
+function renderSpySelector(){
+    const spy_selector = document.getElementById("spy_selector");
+    spy_selector.innerHTML = "";
+
+    for(let i = 1; i < 11; i++){
         const num = document.createElement("div");
         num.className = "spy_number";
-        if (i === num_of_spies && random_spies === false) {
+
+        if (i === num_of_spies && !random_spies){
             num.classList.add("selected_spy");
         }
+
         num.textContent = i;
-        num.addEventListener("click", () => {
+
+        num.onclick = () => {
             random_spies = false;
             num_of_spies = i;
+
             drawSpies();
-            createSpySelector();
-        });
-        selector.appendChild(num);
+            renderSpySelector();
+        };
+
+        spy_selector.appendChild(num);
     }
+
     const rand_num = document.createElement("div");
     rand_num.className = "spy_number";
-    if(random_spies === true){
+
+    if (random_spies){
         rand_num.classList.add("selected_spy");
     }
+
     rand_num.textContent = "🎲";
-    rand_num.addEventListener("click", () => {
-        const max = Math.floor(players.length / 2);
-        num_of_spies = Math.floor(Math.random() * max) + 1; 
+
+    rand_num.onclick = () => {
         random_spies = true;
         drawSpies();
-        createSpySelector();
-    });
-    selector.appendChild(rand_num);
+        renderSpySelector();
+    };
+
+    spy_selector.appendChild(rand_num);
 }
 
-function closeSpy(){
+function openSpyMenu(){
+    const overlay = document.getElementById("black_overlay");
+    const spy_box = document.getElementById("spy_box");
     const ok_button = document.getElementById("ok_spy_button");
-    const spy_overlay = document.getElementById("spy_modal_overlay");
-    const spy_box = document.getElementById("spy_modal_box");
-    spy_overlay.addEventListener("click", () => {
-        spy_overlay.classList.add("hidden");
-    });
-    spy_box.addEventListener("click", (e) => {
-        e.stopPropagation();
-    });
-    ok_button.addEventListener("click", () => {
-        spy_overlay.classList.add("hidden");
-    })
+
+    overlay.classList.remove("hidden");
+    spy_box.classList.remove("hidden");
+
+    renderSpySelector();
+
+    overlay.onclick = () => {
+        spy_box.classList.add("hidden");
+        overlay.classList.add("hidden");
+    };
+    ok_button.onclick = () => {
+        overlay.classList.add("hidden");
+        spy_box.classList.add("hidden");
+    }
+
+    spy_box.onclick = (e) => e.stopPropagation();
 }
 
+function losujSpies(){
+    spy_players = [];
+    const player_size = players.length;
+    let max_spies = 0;
+    if (random_spies){
+        max_spies = Math.min(num_of_spies, player_size / 2);
+    } else {
+        max_spies = Math.min(num_of_spies, player_size);
+    }
+    for(let i = 0; i < player_size; i++){
+        spy_players[i] = false;
+    }
+    let placed = 0;
+    while(placed < max_spies){
+        const rand_index = Math.floor(Math.random() * player_size);
+        if(spy_players[rand_index] === false) {
+            spy_players[rand_index] = true;
+            placed++;
+        }
+    }
+}
 
+//KARTY
 
-function startGame(){
+function startGame(){ //zaczyna karty
     const play_button = document.getElementById("play_button");
     const game_menu = document.getElementById("before_game_menu");
     const card_menu = document.getElementById("cards_menu");
     const game_screen = document.getElementById("game_screen");
-    play_button.addEventListener("click", () => {
-        if(players.length >= 3){
+    play_button.onclick = () => {
+        if( players.length >= 3){
             game_menu.classList.add("hidden");
             card_menu.classList.remove("hidden");
             game_screen.classList.add("hidden");
-            handlePlayers();
+            losujSpies();
+            current_card = 0;
+            drawCard();
         } else {
             warningPlayer();
         }
-    });
+    }
 }
 
-function handlePlayers() {
-    spy_players = [];
-    const player_count = players.length;
-    const max_spies = Math.min(num_of_spies, player_count);
-    for (let i = 0; i < player_count; i++) {
-        spy_players[i] = false;
-    }
-    let placed = 0;
-    while (placed < max_spies) {
-        const randIndex = Math.floor(Math.random() * player_count);
-        if (spy_players[randIndex] === false) {
-            spy_players[randIndex] = true;
-            placed++;
-        }
-    }
-    current_card = 0;
-    showCard();
-}
-
-function showCard() {
+function drawCard(){ //draws and handles a card
+    //drawing cards
     const player_card = document.getElementById("player_card");
-    player_card.innerHTML = "";
     const player_name = document.createElement("h2");
+    player_card.innerHTML = "";
     player_name.textContent = players[current_card];
 
     const cards = document.getElementById("cards");
     cards.innerHTML = "";
     const card = document.createElement("div");
- 
 
     card.id = "card";
     card.textContent = "click to reveal";
-    card.addEventListener("click", () => {
-        if (spy_players[current_card] === false) {
-            card.textContent = word;
-        } else {
-            card.textContent = "spy";
-        }
-    });
-
-    player_card.appendChild(player_name)
-    cards.appendChild(card);
-    dragCards();
-    //addded
-    requestAnimationFrame(() => {
-        const card = document.getElementById("card");
-        card.style.transform = "scale(1)";
-        card.style.opacity = "1";
-    });
-    card.addEventListener("click", () => {
+    card.onclick = () => {
         card.style.transform = "scale(0.98)";
-
         setTimeout(() => {
             if (spy_players[current_card] === false) {
                 card.textContent = word;
@@ -266,58 +236,54 @@ function showCard() {
 
             card.style.transform = "scale(1)";
         }, 120);
-    });
-}
+    }
+    //adding listeners
+    let isDragging = false;
+    let start_x = 0;
 
-let isDragging = false;
-let start_x = 0;
-let start_y = 0;
-let next_card = false;
-function dragCards() {
-    const card = document.getElementById("card");
     card.addEventListener("pointerdown", (e) => {
         isDragging = true;
         start_x = e.clientX;
-    }); //added
+    });
+
     document.addEventListener("pointermove", (e) => {
         if (!isDragging) return;
 
         const dx = e.clientX - start_x;
-
-        const card = document.getElementById("card");
         card.style.transform = `translateX(${dx}px)`;
 
-        if (dx <= -10) {
+        if (Math.abs(dx) >= 10) {
             isDragging = false;
-            card.style.opacity = "0";
-            card.style.transform = "translateX(-200px)";
 
-            setTimeout(() => {
-                nextCard();
-            }, 200);
+            card.style.opacity = "0";
+            card.style.transform = `translateX(${dx > 0 ? 200 : -200}px)`;
+
+            setTimeout(() => nextCard(), 200);
         }
     });
-`    document.addEventListener("pointermove", (e) => {
-        if (!isDragging) return;
-        const dx = e.clientX - start_x;
-        if (dx <= -7) { 
-            isDragging = false;
-            nextCard();
-        }
-    });`
+
     document.addEventListener("pointerup", () => {
         isDragging = false;
+        card.style.transform = "scale(1)";
+    });
+    player_card.appendChild(player_name);
+    cards.appendChild(card);
+    requestAnimationFrame(() => {
+        card.style.opacity = "1";
+        card.style.transform = "scale(1)";
     });
 }
 
-function nextCard() {
+function nextCard(){
     current_card++;
-    if (current_card >= players.length) {
-       DrawGameMenu();
+    if (current_card >= players.length){
+        DrawGameMenu();
         return;
     }
-    showCard();
+    drawCard();
 }
+
+//GAME MENU
 
 function DrawGameMenu(){
     const game_menu = document.getElementById("before_game_menu");
@@ -327,6 +293,7 @@ function DrawGameMenu(){
     cards_menu.classList.add("hidden");
     game_screen.classList.remove("hidden");
     DrawGameScreenPlayers();
+    NextGameButton();
 }
 
 function DrawGameScreenPlayers() {
@@ -342,38 +309,38 @@ function DrawGameScreenPlayers() {
     }
 }
 
+
 function NextGameButton() {
     const next_game_button  = document.getElementById("new_game");
-    next_game_button.addEventListener("click", () => {
+    next_game_button.onclick = () => {
         reloadZestawy();
         start();
-    });
+    };
 }
-
-
 
 //ZESTAWY
 
 function changeZestaw(){
+    //dodaje efekty kliknięcia w zestawy otwórz / zamknij
     const change_sets_div = document.getElementById("change_sets_div");
-    const sets_modal_overlay = document.getElementById("sets_modal_overlay");
-    change_sets_div.addEventListener("click", () =>{
-        sets_modal_overlay.classList.remove("hidden");
-    });
-}
-function closeZestaw(){
-    const sets_modal_overlay = document.getElementById("sets_modal_overlay");
-    const sets_box = document.getElementById("zestawy_box_div");
+    const overlay = document.getElementById("black_overlay");
+    const zestawy_box_div = document.getElementById("zestawy_box_div");
+    change_sets_div.onclick = () => {
+        overlay.classList.remove("hidden");
+        zestawy_box_div.classList.remove("hidden");
+        overlay.onclick = () => {
+            overlay.classList.add("hidden");
+            zestawy_box_div.classList.add("hidden");
+        }
+        zestawy_box_div.onclick = (e) => {
+            e.stopPropagation();
+        }
+    }
 
-    sets_modal_overlay.addEventListener("click", () => {
-        sets_modal_overlay.classList.add("hidden");
-    });
-    sets_box.addEventListener("click", (e) => {
-        e.stopPropagation();
-    });
+    drawZestawy();
 }
 function drawZestawy(){
-    const sets_box = document.getElementById("sets_modal_box");
+    const sets_box = document.getElementById("sets_box");
     sets_box.innerHTML = "";
 
     for(let i = 0; i < zestawy.length; i++){
@@ -392,8 +359,7 @@ function drawZestawy(){
     }
 }
 
-
-function Zestawy() {
+function getZestawy() {
     let zestaw_standardowy_ang = [
         "zestaw standardowy ang",
         ["Casino", "Terrorist Hideout", "Bank", "Hospital", "Military Unit", "Film Studio", "Corporate party", "Vegetable store",
@@ -432,28 +398,34 @@ function reloadZestawy(){
 
 function customZestawy(){
     const add_zestaw_button = document.getElementById("add_zestaw_button");
-    const add_zestaw_overlay = document.getElementById("add_zestaw_overlay");
-    const add_zestaw_screen = document.getElementById("add_zestaw_screen");
-
-    add_zestaw_button.addEventListener("click", () => {
-        add_zestaw_overlay.classList.remove("hidden");
-    });
-}
-
-function addCustomZestaw(){
-    const add_zestaw_overlay = document.getElementById("add_zestaw_overlay");
+    const overlay = document.getElementById("black_overlay");
     const add_zestaw_screen = document.getElementById("add_zestaw_screen");
     const custom_zestaw_confirm = document.getElementById("custom_zestaw_confirm");
+    const del_button = document.getElementById("delete_zestaw_button");
     const custom_zestaw_words = document.getElementById("custom_zestaw_words");
     const custom_zestaw_name = document.getElementById("custom_zestaw_name");
-    add_zestaw_overlay.addEventListener("click", () =>{
-        add_zestaw_overlay.classList.add("hidden");
-    });
-    add_zestaw_screen.addEventListener("click", (e) =>{
-        e.stopPropagation();
-    });
 
-    custom_zestaw_confirm.addEventListener("click", () => {
+    const add_zestawy_box = document.getElementById("zestawy_box_div")
+    add_zestaw_button.onclick = () => {
+        add_zestawy_box.classList.add("hidden");
+        overlay.classList.remove("hidden");
+        add_zestaw_screen.classList.remove("hidden");
+        overlay.onclick = () =>{
+            add_zestawy_box.classList.remove("hidden");
+            add_zestaw_screen.classList.add("hidden");
+            drawZestawy();  //wracamy do menu zestawów a nie do normal screena
+            overlay.onclick = () => {
+                overlay.classList.add("hidden");
+                zestawy_box_div.classList.add("hidden");
+            }
+        };
+        add_zestaw_screen.onclick = (e) =>{
+            e.stopPropagation();
+        }
+    };
+
+    //dodaje custom zestaw
+    custom_zestaw_confirm.onclick = () => {
         let words_raw = custom_zestaw_words.value.trim();
         let name = custom_zestaw_name.value.trim();
 
@@ -466,14 +438,18 @@ function addCustomZestaw(){
         }
         zestawy.push([name, words]);
         localStorage.setItem("zestawy", JSON.stringify(zestawy));
-        add_zestaw_overlay.classList.add("hidden");
-        drawZestawy();
-    });
-}
 
-function deleteZestaw() { 
-    const del_button = document.getElementById("delete_zestaw_button");
-    const sets_box = document.getElementById("sets_modal_box");
+        add_zestawy_box.classList.remove("hidden");
+        add_zestaw_screen.classList.add("hidden");
+        drawZestawy();  //wracamy do menu zestawów a nie do normal screena
+        overlay.onclick = () => {
+            overlay.classList.add("hidden");
+            zestawy_box_div.classList.add("hidden");
+        }
+        custom_zestaw_name.value = "";
+        custom_zestaw_words.value = "";
+    }
+
     del_button.onclick = () => {
         if (selected_zestaw >= 0 && selected_zestaw < zestawy.length) {
             zestawy.splice(selected_zestaw, 1);
@@ -489,4 +465,3 @@ function deleteZestaw() {
         }
     };
 }
-//TODO: dodać końcowy ekran, copy the look of the official app
