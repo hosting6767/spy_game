@@ -534,13 +534,12 @@ function editZestaw(edited_zestaw){
         if (!words_raw) return;
         let words = words_raw.split(",").map(w => w.trim()).filter(w => w.length > 0);
         zestawy = JSON.parse(localStorage.getItem("zestawy")) || [];
-        console.log(edited_zestaw);
         zestawy[edited_zestaw][1] = words;
-        console.log(zestawy[edited_zestaw][1]);
         localStorage.setItem("zestawy", JSON.stringify(zestawy));
 
         zestawy_box_div.classList.remove("hidden");
         zestaw_screen.classList.add("hidden");
+        getZestawy();
         drawZestawy();  //wracamy do menu zestawów a nie do normal screena
         overlay.onclick = () => {
             overlay.classList.add("hidden");
