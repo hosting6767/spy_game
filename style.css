@@ -3,7 +3,7 @@ html, body{
     scrollbar-width: none; -ms-overflow-style: none; overflow-y: auto;
     color: white; background-color: #212529;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande';
-    margin: 0px; width: 100vw !important; height:100vh !important;
+    margin: 0px; width: 100vw !important; height:100% !important;
     box-sizing: border-box;
 }
 html::-webkit-scrollbar, body::-webkit-scrollbar{
@@ -44,6 +44,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{
     text-align: center;
     display: block;  margin: 0 auto;
     width: 70vw; height: 5vh; 
+    max-width: inherit;
     font-size: 3vh;
     background-color: inherit;
     color: white;
@@ -98,7 +99,18 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{
     padding: 10vw;
     z-index: 999;
 }
-
+#delete_player_button{
+    position: absolute; 
+    left: 0px;
+    right: 0px;
+    width: 0px;
+    height: 0px;
+    border: 1px solid none;  
+    padding: 1vw; display: flex; align-items: center; justify-content: center;
+    max-width: fit-content; min-width: 20vw;
+    text-align: center; background-color: black;
+    border-radius: 10px;  width: fit-content; 
+}
 
 
 
@@ -264,11 +276,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{
     transform: scale(1);
 }
 
-.set_item:hover {
-    transform: scale(1.03);
-    background-color: #555;
-}
-
 .set_item_selected {
     background-color: white;
     color: black;
@@ -276,13 +283,15 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{
 } /*end added*/
 
 #add_zestaw_button{
-    float: right;
     background-color: #444; padding: 10px;
     border: 1px solid #444 ; border-radius: 10px;
 }
 #delete_zestaw_button{
-    float:inline-end;
-    background-color: #444; padding: 10px; margin-right: 10px;
+    background-color: #444; padding: 10px; 
+    border: 1px solid #444 ; border-radius: 10px;
+}
+#edit_zestaw_button{
+    background-color: #444; padding: 10px;
     border: 1px solid #444 ; border-radius: 10px;
 }
 
@@ -310,4 +319,42 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{
     border: 1px solid #343A40;
     border-radius: 20px;
     height: 4vh; font-size:3vh;
+}
+
+#edit_zestaw_screen{
+    background: #222;
+    padding: 20px;
+    border-radius: 15px;
+    width: 90%;
+    height: 80vh;
+    max-height: 80vh;
+    justify-content:left;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+#edit_zestaw_name {color: white; align-self: center;}
+#edit_zestaw_textarea {
+    height: 60vh; max-height: 60vh; overflow-y: scroll;
+    line-height: 3vh; font-size: 3vh;
+    outline: none; resize: none;
+}
+#edit_zestaw_confirm {
+    border: 1px solid white;
+    background-color: white;
+    color: black;
+    border-radius: 25px;
+    height: 4vh; font-size:3vh;
+    align-self: center;
+    padding: 10px;
+}
+
+#flush_cache_button {
+    position: absolute;
+    bottom: 2vh; left:35vw;
+
+    width: 30vw;
+    height: 3vh;
+
+    border-radius: 20px;
 }

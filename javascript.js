@@ -1,3 +1,5 @@
+
+
 let players = [];
 let spy_players = [];
 let word = "";
@@ -36,11 +38,49 @@ function drawPlayers(){ //draws players and their overlay
 
     //rysowanie graczy
     const player_size = players.length;
+    let currentOutsideClick = null;
     for (let i = 0; i < player_size; i++){
         let box = document.createElement("div");
         box.classList.add("player_box");
         box.textContent = players[i];
-        
+
+        box.onclick = (e) => {
+            e.stopPropagation();
+            const old_del = document.getElementById("delete_player_button");
+            if ( old_del ) { 
+                old_del.remove();
+                if (currentOutsideClick) {
+                    document.removeEventListener("click", currentOutsideClick);
+                }
+            }
+
+            const delete_player_div = document.createElement("div");
+            const rect = box.getBoundingClientRect();
+            delete_player_div.id = "delete_player_button";
+            delete_player_div.style.left = rect.left + "px";
+            delete_player_div.style.top = rect.bottom + "px";
+            delete_player_div.style.width = rect.width + "px";
+            delete_player_div.style.height = rect.height +"px";
+            delete_player_div.textContent = "delete";
+            document.body.appendChild(delete_player_div);
+            delete_player_div.onclick = () => {
+                players.splice(i, 1);
+                box.remove();
+                delete_player_div.remove();
+                document.removeEventListener("click", outsideClick);
+            }
+
+            const outsideClick = (event) => {
+                if (!delete_player_div.contains(event.target)) {
+                    delete_player_div.remove();
+                    document.removeEventListener("click", outsideClick);
+                }
+            };
+            currentOutsideClick = outsideClick;
+            setTimeout(() => {
+                document.addEventListener("click", outsideClick);
+            }, 0);
+        }
         player_container.appendChild(box);
     }
 
@@ -81,7 +121,9 @@ function drawPlayers(){ //draws players and their overlay
 function warningPlayer(){
     const warning = document.getElementById("player_warning");
     const warning_button = document.getElementById("player_warning_button");
+    const text = document.getElementById("player_warning_text");
     warning.classList.remove("hidden");
+    text.innerHTML = "YOU NEED ATLEAST 3 PLAYERS TO PLAY";
     warning_button.onclick = () => {
         warning.classList.add("hidden");
     };
@@ -404,6 +446,7 @@ function customZestawy(){
     const del_button = document.getElementById("delete_zestaw_button");
     const custom_zestaw_words = document.getElementById("custom_zestaw_words");
     const custom_zestaw_name = document.getElementById("custom_zestaw_name");
+    const edit_zestaw_button = document.getElementById("edit_zestaw_button");
 
     const add_zestawy_box = document.getElementById("zestawy_box_div")
     add_zestaw_button.onclick = () => {
@@ -463,5 +506,76 @@ function customZestawy(){
         } else {
             console.log("Invalid index:", selected_zestaw);
         }
+    };
+
+    edit_zestaw_button.onclick = () => {
+        const zestaw_screen = document.getElementById("edit_zestaw_screen");
+        add_zestawy_box.classList.add("hidden");
+        zestaw_screen.classList.remove("hidden");
+        editZestaw(selected_zestaw);
+    }
+}
+
+
+function editZestaw(edited_zestaw){
+    const overlay = document.getElementById("black_overlay");
+    const zestawy_box_div = document.getElementById("zestawy_box_div"); //z tego menu lecimy
+    const zestaw_screen = document.getElementById("edit_zestaw_screen");
+    const name = document.getElementById("edit_zestaw_name");
+    const content = document.getElementById("edit_zestaw_textarea");
+    const confirm = document.getElementById("edit_zestaw_confirm");
+
+    content.value = zestawy[edited_zestaw][1]; //0 _> set name a 1 -> content
+    name.innerHTML = zestawy[edited_zestaw][0];
+
+    confirm.onclick = () => {
+        let words_raw = content.value.trim();
+
+        if (!words_raw) return;
+        let words = words_raw.split(",").map(w => w.trim()).filter(w => w.length > 0);
+        zestawy = JSON.parse(localStorage.getItem("zestawy")) || [];
+        console.log(edited_zestaw);
+        zestawy[edited_zestaw][1] = words;
+        console.log(zestawy[edited_zestaw][1]);
+        localStorage.setItem("zestawy", JSON.stringify(zestawy));
+
+        zestawy_box_div.classList.remove("hidden");
+        zestaw_screen.classList.add("hidden");
+        drawZestawy();  //wracamy do menu zestawów a nie do normal screena
+        overlay.onclick = () => {
+            overlay.classList.add("hidden");
+            zestawy_box_div.classList.add("hidden");
+        }
+    }
+    zestaw_screen.onclick = (e) =>{
+        e.stopPropagation();
+    }
+    overlay.onclick = () => {
+        zestawy_box_div.classList.remove("hidden");
+        zestaw_screen.classList.add("hidden");
+        overlay.onclick = () => {
+            overlay.classList.add("hidden");
+            zestawy_box_div.classList.add("hidden");
+        }
+    }
+}
+
+
+function flushLocalStorage(){
+    //ask if sure
+    const warning = document.getElementById("player_warning");
+    const warning_button = document.getElementById("player_warning_button");
+    const text = document.getElementById("player_warning_text");
+    warning.classList.remove("hidden");
+    warning.onclick = () => {
+        warning.classList.add("hidden");
+    }
+    text.innerHTML = "Are you sure ??? <br><br> This action will delete all of your custom sets";
+    warning_button.onclick = () => {
+        warning.classList.add("hidden");
+        localStorage.clear();
+        getZestawy();
+        drawZestawy();
+        warning.onclick = null;
     };
 }
