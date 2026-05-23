@@ -573,6 +573,7 @@ function flushLocalStorage(){
     warning_button.onclick = () => {
         warning.classList.add("hidden");
         localStorage.clear();
+        selected_zestaw = 0;
         getZestawy();
         drawZestawy();
         warning.onclick = null;
