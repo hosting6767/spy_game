@@ -6,7 +6,9 @@ let word = "";
 let num_of_spies = 1;
 let random_spies = false;
 let zestawy = [];
-let selected_zestaw = 0;
+let selected_zestawy = [0]
+let crazy_mode = false;
+let crazy_word = "";
 current_card = 0;
 
 start();
@@ -21,6 +23,11 @@ function start(){
     cards_menu.classList.add("hidden");
     game_screen.classList.add("hidden");
 
+    if (players == false){
+        players = JSON.parse(localStorage.getItem("players"));
+        console.log(players);
+    }
+    getCrazyMode();
     drawPlayers();
     handleSpies();
     getZestawy();
@@ -28,6 +35,23 @@ function start(){
     customZestawy();
 }
 
+function getCrazyMode(){
+    const crazy_mode_button = document.getElementById("crazy_mode_button");
+    if (crazy_mode === false){
+        crazy_mode_button.innerHTML = "False";
+        crazy_mode_button.onclick = (e) =>{
+            crazy_mode = true;
+            getCrazyMode();
+        }
+    } else {
+        crazy_mode_button.innerHTML = "True";
+        crazy_mode_button.onclick = (e) =>{
+            crazy_mode = false;
+            getCrazyMode();
+        }
+    }
+
+}
 
 function drawPlayers(){ //draws players and their overlay
     const overlay = document.getElementById("black_overlay");
@@ -101,6 +125,8 @@ function drawPlayers(){ //draws players and their overlay
             const username = player_input.value.trim();
             if (username === "") return;
             players.push(username);
+            localStorage.setItem("players", JSON.stringify(players));
+            console.log(JSON.parse(localStorage.getItem("players")))
             drawPlayers();
             overlay.classList.add("hidden");
             player_box.classList.add("hidden");
@@ -220,6 +246,9 @@ function losujSpies(){
     } else {
         max_spies = Math.min(num_of_spies, player_size);
     }
+    if (crazy_mode){
+        max_spies = (Math.floor(Math.random() * (player_size / 3)) + 1)
+    }
     for(let i = 0; i < player_size; i++){
         spy_players[i] = false;
     }
@@ -254,8 +283,7 @@ function startGame(){ //zaczyna karty
     }
 }
 
-function drawCard(){ //draws and handles a card
-    //drawing cards
+function drawCard(){ 
     const player_card = document.getElementById("player_card");
     const player_name = document.createElement("h2");
     player_card.innerHTML = "";
@@ -271,7 +299,19 @@ function drawCard(){ //draws and handles a card
         card.style.transform = "scale(0.98)";
         setTimeout(() => {
             if (spy_players[current_card] === false) {
-                card.textContent = word;
+                //console.log(crazy_mode)
+                if(crazy_mode){
+                    let chance = Math.random()
+                    //console.log(chance)
+                    if (chance < 0.1){
+                        card.textContent = crazy_word;
+                        //console.log(chance)
+                    } else {
+                        card.textContent = word;
+                    }
+                } else {
+                    card.textContent = word;
+                }
             } else {
                 card.textContent = "spy";
             }
@@ -279,7 +319,7 @@ function drawCard(){ //draws and handles a card
             card.style.transform = "scale(1)";
         }, 120);
     }
-    //adding listeners
+
     let isDragging = false;
     let start_x = 0;
 
@@ -335,7 +375,21 @@ function DrawGameMenu(){
     cards_menu.classList.add("hidden");
     game_screen.classList.remove("hidden");
     DrawGameScreenPlayers();
+    DrawGameScreenAnswers();
     NextGameButton();
+}
+
+function DrawGameScreenAnswers(){
+    const game_screen_answers = document.getElementById("game_screen_answers");
+    game_screen_answers.disabled = true;
+    let possible_words = "";
+    for(let i = 0; i < selected_zestawy.length; i++){
+        possible_words += (zestawy[selected_zestawy[i]][1]);
+        possible_words += ","
+    }
+    game_screen_answers.innerHTML = possible_words;
+    console.log(selected_zestawy);
+    console.log(players)
 }
 
 function DrawGameScreenPlayers() {
@@ -388,15 +442,21 @@ function drawZestawy(){
     for(let i = 0; i < zestawy.length; i++){
         const set = document.createElement("div");
         set.classList.add("set_item");
-        if (selected_zestaw === i){
+        if (selected_zestawy.includes(i)){
             set.classList.add("set_item_selected");
+            set.onclick = () => {
+                selected_zestawy.splice(selected_zestawy.indexOf(i), 1);
+                drawZestawy();
+                reloadZestawy();
+            }
+        } else {
+            set.onclick = () => {
+                selected_zestawy.push(i);
+                drawZestawy();   
+                reloadZestawy();
+            };
         }
         set.textContent = zestawy[i][0];
-        set.onclick = () => {
-            selected_zestaw = i;
-            drawZestawy();   
-            reloadZestawy();
-        };
         sets_box.appendChild(set);
     }
 }
@@ -428,14 +488,31 @@ function getZestawy() {
     } else {
         zestawy = saved_zestawy;
     }
-    const max = zestawy[selected_zestaw][1].length;
     
-    word = zestawy[selected_zestaw][1][Math.floor(Math.random() * max)];
+    let all_words = [];
+    for(let i = 0; i < selected_zestawy.length; i++){
+        for(let j = 0; j < zestawy[selected_zestawy[i]][1].length; j++){
+            all_words.push(zestawy[selected_zestawy[i]][1][j]);
+        }
+    }
+    word = all_words[Math.floor(Math.random() * all_words.length)];
+    do{
+        crazy_word = all_words[Math.floor(Math.random() * all_words.length)];
+    } while (crazy_word === word);
 }
 
 function reloadZestawy(){
-    const max = zestawy[selected_zestaw][1].length;
-    word = zestawy[selected_zestaw][1][Math.floor(Math.random() * max)];
+    let all_words = [];
+    for(let i = 0; i < selected_zestawy.length; i++){
+        for(let j = 0; j < zestawy[selected_zestawy[i]][1].length; j++){
+            all_words.push(zestawy[selected_zestawy[i]][1][j]);
+        }
+    }
+    word = all_words[Math.floor(Math.random() * all_words.length)];
+    do{
+        crazy_word = all_words[Math.floor(Math.random() * all_words.length)];
+    } while (crazy_word === word);
+    console.log(selected_zestawy)
 }
 
 function customZestawy(){
@@ -494,25 +571,30 @@ function customZestawy(){
     }
 
     del_button.onclick = () => {
-        if (selected_zestaw >= 0 && selected_zestaw < zestawy.length) {
-            zestawy.splice(selected_zestaw, 1);
+        for(let i = 0; i < selected_zestawy.length; i++){
+            if (selected_zestawy[i] >= 0 && selected_zestawy[i] < zestawy.length) {
+                zestawy.splice(selected_zestawy[i], 1);
 
-            if (selected_zestaw >= zestawy.length) {
-                selected_zestaw = zestawy.length - 1;
+                if (selected_zestawy[i] >= zestawy.length) {
+                    selected_zestawy[i] = zestawy.length - 1;
+                }
+                drawZestawy();
+                reloadZestawy();
+                localStorage.setItem("zestawy", JSON.stringify(zestawy));
+            } else {
+                console.log("Invalid index:", selected_zestawy[i]);
             }
-            drawZestawy();
-            reloadZestawy();
-            localStorage.setItem("zestawy", JSON.stringify(zestawy));
-        } else {
-            console.log("Invalid index:", selected_zestaw);
         }
+
     };
 
     edit_zestaw_button.onclick = () => {
-        const zestaw_screen = document.getElementById("edit_zestaw_screen");
-        add_zestawy_box.classList.add("hidden");
-        zestaw_screen.classList.remove("hidden");
-        editZestaw(selected_zestaw);
+        if(selected_zestawy.length == 1){
+            const zestaw_screen = document.getElementById("edit_zestaw_screen");
+            add_zestawy_box.classList.add("hidden");
+            zestaw_screen.classList.remove("hidden");
+            editZestaw(selected_zestawy[0]);
+        }
     }
 }
 
@@ -573,9 +655,19 @@ function flushLocalStorage(){
     warning_button.onclick = () => {
         warning.classList.add("hidden");
         localStorage.clear();
-        selected_zestaw = 0;
+        selected_zestawy = [0];
         getZestawy();
         drawZestawy();
         warning.onclick = null;
     };
 }
+
+/*
+cele for the day:
+    -dodać na końcu hasła :D
+    -chaos mode (3% na "spy", 75% 1 os inne haslo, inne języki, dynamic spy number)
+    -łączenie wybranych setów :D
+    -preset osób z localstorage :D
+    -lepszy swipe
+*/
+

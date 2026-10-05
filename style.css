@@ -32,7 +32,10 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{
 }
 
 
-
+#crazy_mode_div{
+    display: flex; flex-wrap: wrap;
+    justify-content: space-between;
+}
 
 #player_div{
     display: flex; flex-wrap: wrap; 
@@ -222,6 +225,11 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{
     text-align: center; justify-content: center; align-items: center; display: flex;
     border: 1px solid #343A40; background-color: #343A40;
     border-radius: 10px;
+}
+#game_screen_answers{
+    min-width: 100vw; height: 60vh; max-height: 60vh; overflow-y: scroll;
+    line-height: 3vh; font-size: 3vh;
+    outline: none; resize: none;
 }
 #game_screen_actions{
     color: red;
