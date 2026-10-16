@@ -24,7 +24,7 @@ function start(){
     game_screen.classList.add("hidden");
 
     if (players == false){
-        players = JSON.parse(localStorage.getItem("players"));
+        players = JSON.parse(localStorage.getItem("players")) || [];
         console.log(players);
     }
     getCrazyMode();
@@ -89,6 +89,7 @@ function drawPlayers(){ //draws players and their overlay
             document.body.appendChild(delete_player_div);
             delete_player_div.onclick = () => {
                 players.splice(i, 1);
+                localStorage.setItem("players", JSON.stringify(players));
                 box.remove();
                 delete_player_div.remove();
                 document.removeEventListener("click", outsideClick);
