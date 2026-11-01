@@ -4,13 +4,19 @@ let players = [];
 let spy_players = [];
 let word = "";
 let num_of_spies = 1;
+let max_num_of_spies = 1;
 let random_spies = false;
 let zestawy = [];
 let selected_zestawy = [0]
 let crazy_mode = false;
-let crazy_word = "";
+let crazy_min = 1;
+let crazy_max = 1;
+let crazy_same_word = true;
+let player_words = [];
+let spy_count = 0;
 current_card = 0;
 
+loadSettings();
 start();
 startGame();
 
@@ -35,22 +41,140 @@ function start(){
     customZestawy();
 }
 
+//zapisywanie ustawień w localStorage (tak jak players)
+function saveSettings(){
+    localStorage.setItem("settings", JSON.stringify([num_of_spies, max_num_of_spies, random_spies, crazy_mode, crazy_min, crazy_max, crazy_same_word]));
+}
+
+function loadSettings(){
+    const saved_settings = JSON.parse(localStorage.getItem("settings"));
+    if (saved_settings === null) return;
+    num_of_spies = saved_settings[0];
+    max_num_of_spies = saved_settings[1];
+    random_spies = saved_settings[2];
+    crazy_mode = saved_settings[3];
+    crazy_min = saved_settings[4];
+    crazy_max = saved_settings[5];
+    crazy_same_word = saved_settings[6];
+}
+
 function getCrazyMode(){
     const crazy_mode_button = document.getElementById("crazy_mode_button");
+    const crazy_options_div = document.getElementById("crazy_options_div");
+    const crazy_count_button = document.getElementById("crazy_count_button");
+    const crazy_word_button = document.getElementById("crazy_word_button");
     if (crazy_mode === false){
         crazy_mode_button.innerHTML = "False";
+        crazy_options_div.classList.add("hidden");
         crazy_mode_button.onclick = (e) =>{
             crazy_mode = true;
+            saveSettings();
             getCrazyMode();
         }
     } else {
         crazy_mode_button.innerHTML = "True";
+        crazy_options_div.classList.remove("hidden");
         crazy_mode_button.onclick = (e) =>{
             crazy_mode = false;
+            saveSettings();
             getCrazyMode();
         }
     }
 
+    //ile osób ma inne hasło
+    if (crazy_min === crazy_max){
+        crazy_count_button.innerHTML = crazy_min;
+    } else {
+        crazy_count_button.innerHTML = crazy_min + "-" + crazy_max;
+    }
+    crazy_count_button.onclick = () => openCrazyMenu();
+
+    //czy inne hasło jest takie samo dla wszystkich, czy losowe
+    if (crazy_same_word === true){
+        crazy_word_button.innerHTML = "Same word";
+    } else {
+        crazy_word_button.innerHTML = "Random words";
+    }
+    crazy_word_button.onclick = () => {
+        crazy_same_word = !crazy_same_word;
+        saveSettings();
+        getCrazyMode();
+    }
+}
+
+function renderCrazySelector(){
+    const crazy_selector = document.getElementById("crazy_selector");
+    const crazy_selector_max = document.getElementById("crazy_selector_max");
+    crazy_selector.innerHTML = "";
+    crazy_selector_max.innerHTML = "";
+
+    for(let i = 1; i < 11; i++){
+        const num = document.createElement("div");
+        num.className = "spy_number";
+
+        if (i === crazy_min){
+            num.classList.add("selected_spy");
+        }
+
+        num.textContent = i;
+
+        num.onclick = () => {
+            crazy_min = i;
+            if (crazy_max < crazy_min){
+                crazy_max = crazy_min;
+            }
+
+            saveSettings();
+            getCrazyMode();
+            renderCrazySelector();
+        };
+
+        crazy_selector.appendChild(num);
+
+        const num_max = document.createElement("div");
+        num_max.className = "spy_number";
+
+        if (i === crazy_max){
+            num_max.classList.add("selected_spy");
+        }
+
+        num_max.textContent = i;
+
+        num_max.onclick = () => {
+            crazy_max = i;
+            if (crazy_min > crazy_max){
+                crazy_min = crazy_max;
+            }
+
+            saveSettings();
+            getCrazyMode();
+            renderCrazySelector();
+        };
+
+        crazy_selector_max.appendChild(num_max);
+    }
+}
+
+function openCrazyMenu(){
+    const overlay = document.getElementById("black_overlay");
+    const crazy_box = document.getElementById("crazy_box");
+    const ok_button = document.getElementById("ok_crazy_button");
+
+    overlay.classList.remove("hidden");
+    crazy_box.classList.remove("hidden");
+
+    renderCrazySelector();
+
+    overlay.onclick = () => {
+        crazy_box.classList.add("hidden");
+        overlay.classList.add("hidden");
+    };
+    ok_button.onclick = () => {
+        overlay.classList.add("hidden");
+        crazy_box.classList.add("hidden");
+    }
+
+    crazy_box.onclick = (e) => e.stopPropagation();
 }
 
 function drawPlayers(){ //draws players and their overlay
@@ -145,12 +269,12 @@ function drawPlayers(){ //draws players and their overlay
     player_container.appendChild(add_box);
 }
 
-function warningPlayer(){
+function warningPlayer(message){
     const warning = document.getElementById("player_warning");
     const warning_button = document.getElementById("player_warning_button");
     const text = document.getElementById("player_warning_text");
     warning.classList.remove("hidden");
-    text.innerHTML = "YOU NEED ATLEAST 3 PLAYERS TO PLAY";
+    text.innerHTML = message || "YOU NEED ATLEAST 3 PLAYERS TO PLAY";
     warning_button.onclick = () => {
         warning.classList.add("hidden");
     };
@@ -161,7 +285,7 @@ function drawSpies(){
     if ( random_spies === false ) {
         spy_div.textContent = num_of_spies;
     } else {
-        spy_div.textContent = "🎲";
+        spy_div.textContent = num_of_spies + "-" + max_num_of_spies;
     }
 }
 
@@ -177,25 +301,65 @@ function renderSpySelector(){
     const spy_selector = document.getElementById("spy_selector");
     spy_selector.innerHTML = "";
 
+    //drugi rząd ("do") jest tylko przy losowej liczbie szpiegów, pierwszy rząd to wtedy "od"
+    const spy_selector_max = document.getElementById("spy_selector_max");
+    const spy_from_text = document.getElementById("spy_from_text");
+    const spy_to_text = document.getElementById("spy_to_text");
+    spy_selector_max.innerHTML = "";
+    if (random_spies){
+        spy_from_text.classList.remove("hidden");
+        spy_to_text.classList.remove("hidden");
+        spy_selector_max.classList.remove("hidden");
+    } else {
+        spy_from_text.classList.add("hidden");
+        spy_to_text.classList.add("hidden");
+        spy_selector_max.classList.add("hidden");
+    }
+
     for(let i = 1; i < 11; i++){
         const num = document.createElement("div");
         num.className = "spy_number";
 
-        if (i === num_of_spies && !random_spies){
+        if (i === num_of_spies){
             num.classList.add("selected_spy");
         }
 
         num.textContent = i;
 
         num.onclick = () => {
-            random_spies = false;
             num_of_spies = i;
+            if (max_num_of_spies < num_of_spies){
+                max_num_of_spies = num_of_spies;
+            }
 
+            saveSettings();
             drawSpies();
             renderSpySelector();
         };
 
         spy_selector.appendChild(num);
+
+        const num_max = document.createElement("div");
+        num_max.className = "spy_number";
+
+        if (i === max_num_of_spies){
+            num_max.classList.add("selected_spy");
+        }
+
+        num_max.textContent = i;
+
+        num_max.onclick = () => {
+            max_num_of_spies = i;
+            if (num_of_spies > max_num_of_spies){
+                num_of_spies = max_num_of_spies;
+            }
+
+            saveSettings();
+            drawSpies();
+            renderSpySelector();
+        };
+
+        spy_selector_max.appendChild(num_max);
     }
 
     const rand_num = document.createElement("div");
@@ -208,7 +372,8 @@ function renderSpySelector(){
     rand_num.textContent = "🎲";
 
     rand_num.onclick = () => {
-        random_spies = true;
+        random_spies = !random_spies;
+        saveSettings();
         drawSpies();
         renderSpySelector();
     };
@@ -243,13 +408,12 @@ function losujSpies(){
     const player_size = players.length;
     let max_spies = 0;
     if (random_spies){
-        max_spies = Math.min(num_of_spies, player_size / 2);
+        max_spies = num_of_spies + Math.floor(Math.random() * (max_num_of_spies - num_of_spies + 1));
+        max_spies = Math.min(max_spies, player_size);
     } else {
         max_spies = Math.min(num_of_spies, player_size);
     }
-    if (crazy_mode){
-        max_spies = (Math.floor(Math.random() * (player_size / 3)) + 1)
-    }
+    spy_count = max_spies;
     for(let i = 0; i < player_size; i++){
         spy_players[i] = false;
     }
@@ -263,6 +427,59 @@ function losujSpies(){
     }
 }
 
+//CRAZY - każdy gracz dostaje swoje hasło, tylko nie-szpiedzy mogą dostać inne
+function losujCrazy(){
+    const player_size = players.length;
+    player_words = [];
+    for(let i = 0; i < player_size; i++){
+        player_words[i] = word;
+    }
+    if (crazy_mode === false) return;
+
+    //wszystkie hasła z wybranych zestawów oprócz głównego
+    let other_words = [];
+    for(let i = 0; i < selected_zestawy.length; i++){
+        for(let j = 0; j < zestawy[selected_zestawy[i]][1].length; j++){
+            const w = zestawy[selected_zestawy[i]][1][j];
+            if (w !== word && !other_words.includes(w)){
+                other_words.push(w);
+            }
+        }
+    }
+    if (other_words.length === 0) return;
+
+    //gracze bez szpiegów
+    let not_spies = [];
+    for(let i = 0; i < player_size; i++){
+        if (spy_players[i] === false){
+            not_spies.push(i);
+        }
+    }
+
+    //ile osób dostaje inne hasło (ktoś musi zostać z głównym hasłem)
+    let different_players = crazy_min + Math.floor(Math.random() * (crazy_max - crazy_min + 1));
+    if (different_players > not_spies.length - 1){
+        different_players = not_spies.length - 1;
+    }
+
+    const same_word = other_words[Math.floor(Math.random() * other_words.length)];
+    for(let k = 0; k < different_players; k++){
+        const rand_index = Math.floor(Math.random() * not_spies.length);
+        const player = not_spies[rand_index];
+        not_spies.splice(rand_index, 1);
+
+        if (crazy_same_word === true){
+            player_words[player] = same_word;
+        } else {
+            const word_index = Math.floor(Math.random() * other_words.length);
+            player_words[player] = other_words[word_index];
+            if (other_words.length > 1){
+                other_words.splice(word_index, 1);
+            }
+        }
+    }
+}
+
 //KARTY
 
 function startGame(){ //zaczyna karty
@@ -272,10 +489,15 @@ function startGame(){ //zaczyna karty
     const game_screen = document.getElementById("game_screen");
     play_button.onclick = () => {
         if( players.length >= 3){
+            if (selected_zestawy.length === 0){
+                warningPlayer("SELECT AT LEAST ONE SET");
+                return;
+            }
             game_menu.classList.add("hidden");
             card_menu.classList.remove("hidden");
             game_screen.classList.add("hidden");
             losujSpies();
+            losujCrazy();
             current_card = 0;
             drawCard();
         } else {
@@ -300,19 +522,7 @@ function drawCard(){
         card.style.transform = "scale(0.98)";
         setTimeout(() => {
             if (spy_players[current_card] === false) {
-                //console.log(crazy_mode)
-                if(crazy_mode){
-                    let chance = Math.random()
-                    //console.log(chance)
-                    if (chance < 0.1){
-                        card.textContent = crazy_word;
-                        //console.log(chance)
-                    } else {
-                        card.textContent = word;
-                    }
-                } else {
-                    card.textContent = word;
-                }
+                card.textContent = player_words[current_card];
             } else {
                 card.textContent = "spy";
             }
@@ -375,9 +585,15 @@ function DrawGameMenu(){
     game_menu.classList.add("hidden");
     cards_menu.classList.add("hidden");
     game_screen.classList.remove("hidden");
+    DrawGameScreenInfo();
     DrawGameScreenPlayers();
     DrawGameScreenAnswers();
     NextGameButton();
+}
+
+function DrawGameScreenInfo(){ //z iloma szpiegami wystartowała gra
+    const game_screen_info = document.getElementById("game_screen_info");
+    game_screen_info.textContent = "Spies: " + spy_count;
 }
 
 function DrawGameScreenAnswers(){
@@ -497,9 +713,6 @@ function getZestawy() {
         }
     }
     word = all_words[Math.floor(Math.random() * all_words.length)];
-    do{
-        crazy_word = all_words[Math.floor(Math.random() * all_words.length)];
-    } while (crazy_word === word);
 }
 
 function reloadZestawy(){
@@ -510,9 +723,6 @@ function reloadZestawy(){
         }
     }
     word = all_words[Math.floor(Math.random() * all_words.length)];
-    do{
-        crazy_word = all_words[Math.floor(Math.random() * all_words.length)];
-    } while (crazy_word === word);
     console.log(selected_zestawy)
 }
 
@@ -572,20 +782,14 @@ function customZestawy(){
     }
 
     del_button.onclick = () => {
+        selected_zestawy.sort((a, b) => b - a);  //od końca, żeby splice nie przesuwał kolejnych indeksów
         for(let i = 0; i < selected_zestawy.length; i++){
-            if (selected_zestawy[i] >= 0 && selected_zestawy[i] < zestawy.length) {
-                zestawy.splice(selected_zestawy[i], 1);
-
-                if (selected_zestawy[i] >= zestawy.length) {
-                    selected_zestawy[i] = zestawy.length - 1;
-                }
-                drawZestawy();
-                reloadZestawy();
-                localStorage.setItem("zestawy", JSON.stringify(zestawy));
-            } else {
-                console.log("Invalid index:", selected_zestawy[i]);
-            }
+            zestawy.splice(selected_zestawy[i], 1);
         }
+        selected_zestawy = [];
+        drawZestawy();
+        reloadZestawy();
+        localStorage.setItem("zestawy", JSON.stringify(zestawy));
 
     };
 
@@ -652,13 +856,22 @@ function flushLocalStorage(){
     warning.onclick = () => {
         warning.classList.add("hidden");
     }
-    text.innerHTML = "Are you sure ??? <br><br> This action will delete all of your custom sets";
+    text.innerHTML = "Are you sure ??? <br><br> This action will delete all of your custom sets and settings";
     warning_button.onclick = () => {
         warning.classList.add("hidden");
         localStorage.clear();
         selected_zestawy = [0];
+        num_of_spies = 1;
+        max_num_of_spies = 1;
+        random_spies = false;
+        crazy_mode = false;
+        crazy_min = 1;
+        crazy_max = 1;
+        crazy_same_word = true;
         getZestawy();
         drawZestawy();
+        drawSpies();
+        getCrazyMode();
         warning.onclick = null;
     };
 }

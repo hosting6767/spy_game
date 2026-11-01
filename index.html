@@ -32,6 +32,16 @@
                 <strong>Crazy mode</strong>
                 <strong><button id="crazy_mode_button">True</button></strong>
             </div>
+            <div id="crazy_options_div" class="hidden">
+                <div id="crazy_count_div">
+                    <strong>Players with different word</strong>
+                    <strong><button id="crazy_count_button"></button></strong>
+                </div>
+                <div id="crazy_word_div">
+                    <strong>Different word is</strong>
+                    <strong><button id="crazy_word_button"></button></strong>
+                </div>
+            </div>
         </div>
 
         <div id="play_button">
@@ -50,8 +60,20 @@
         
         <div id="spy_box" class="hidden">
             <h2>Number of spies</h2>
+            <strong id="spy_from_text" class="hidden">From</strong>
             <div id="spy_selector"></div>
+            <strong id="spy_to_text" class="hidden">To</strong>
+            <div id="spy_selector_max" class="hidden"></div>
             <button id="ok_spy_button">OK</button>
+        </div>
+
+        <div id="crazy_box" class="hidden">
+            <h2>Players with different word</h2>
+            <strong>From</strong>
+            <div id="crazy_selector"></div>
+            <strong>To</strong>
+            <div id="crazy_selector_max"></div>
+            <button id="ok_crazy_button">OK</button>
         </div>
 
         <div id="zestawy_box_div" class="hidden">
@@ -91,6 +113,7 @@
     </div>
 
     <div id="game_screen" class="hidden">
+        <div id="game_screen_info"></div>
         <div id="game_screen_players"></div>
         <textarea id="game_screen_answers" spellcheck="false"></textarea>
         <div id="game_screen_actions">Menu under construction</div>
